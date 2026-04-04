@@ -1,14 +1,14 @@
+import "reflect-metadata";
 import "dotenv/config";
-import { createPool, runMigrations } from "./config/database";
+import { AppDataSource } from "./config/database";
 import { createApp } from "./app";
 
 const PORT = process.env.PORT || 3000;
 
 async function main(): Promise<void> {
-  const db = createPool();
-  await runMigrations(db);
+  await AppDataSource.initialize();
 
-  const app = createApp(db);
+  const app = createApp(AppDataSource);
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });

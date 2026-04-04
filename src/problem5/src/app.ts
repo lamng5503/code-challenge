@@ -1,9 +1,9 @@
 import express, { Application } from "express";
-import { Pool } from "pg";
+import { DataSource } from "typeorm";
 import { createItemRouter } from "./routes/item.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
-export function createApp(db: Pool): Application {
+export function createApp(db: DataSource): Application {
   const app = express();
 
   app.use(express.json());

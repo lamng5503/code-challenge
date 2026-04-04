@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { Pool } from "pg";
+import { DataSource } from "typeorm";
 import { ItemRepository } from "../repositories/item.repository";
 import { ItemService } from "../services/item.service";
 import { ItemController } from "../controllers/item.controller";
 
-export function createItemRouter(db: Pool): Router {
+export function createItemRouter(db: DataSource): Router {
   const router = Router();
 
   const repository = new ItemRepository(db);

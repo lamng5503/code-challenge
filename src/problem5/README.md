@@ -1,9 +1,9 @@
 # Problem 5 — A Crude Server
 
-A CRUD REST API built with **Express.js**, **TypeScript**, and **PostgreSQL**, following a **Layered Architecture** pattern.
+A CRUD REST API built with **Express.js**, **TypeScript**, **TypeORM**, and **PostgreSQL**, following a **Layered Architecture** pattern.
 
 ```
-Routes → Controllers → Services → Repositories → Database (pg Pool)
+Routes → Controllers → Services → Repositories → TypeORM DataSource → PostgreSQL
 ```
 
 ---
@@ -28,7 +28,7 @@ docker compose up --build
 ```
 
 The server will be available at **http://localhost:3000**.  
-Migrations run automatically on startup.
+The database schema is managed automatically by TypeORM (`synchronize: true`) on startup.
 
 To stop and remove containers:
 ```bash
@@ -84,15 +84,17 @@ npm start
 src/problem5/
 ├── src/                          # Application source code
 │   ├── config/
-│   │   └── database.ts           # pg Pool factory + schema migrations
+│   │   └── database.ts           # TypeORM DataSource configuration
+│   ├── entities/
+│   │   └── item.entity.ts        # TypeORM entity (maps to the items table)
 │   ├── errors/
 │   │   └── AppError.ts           # Typed error hierarchy (AppError, NotFoundError, ValidationError)
 │   ├── middleware/
 │   │   └── errorHandler.ts       # Centralised error handling (Zod + AppError + unknown)
 │   ├── models/
-│   │   └── item.model.ts         # Item interface + Zod schemas for request validation
+│   │   └── item.model.ts         # Zod schemas for request validation (DTOs)
 │   ├── repositories/
-│   │   └── item.repository.ts    # Data access layer — all SQL via pg Pool
+│   │   └── item.repository.ts    # Data access layer — TypeORM repository methods
 │   ├── services/
 │   │   └── item.service.ts       # Business logic, orchestrates repositories
 │   ├── controllers/
@@ -100,7 +102,7 @@ src/problem5/
 │   ├── routes/
 │   │   └── item.routes.ts        # Wires controllers to Express Router
 │   ├── app.ts                    # Express app factory (middleware, routes, 404)
-│   └── server.ts                 # Entry point — run migrations, start HTTP server
+│   └── server.ts                 # Entry point — initialise DataSource, start HTTP server
 ├── Dockerfile                    # Multi-stage build: builder → production image
 ├── docker-compose.yml            # Orchestrates app + postgres:16-alpine
 ├── .env.example                  # Environment variable template
@@ -115,9 +117,10 @@ src/problem5/
 | **Routes** | `routes/item.routes.ts` | Map HTTP methods + paths to controller handlers |
 | **Controllers** | `controllers/item.controller.ts` | Parse & validate HTTP input, format HTTP response |
 | **Services** | `services/item.service.ts` | Business rules, pagination logic, error semantics |
-| **Repositories** | `repositories/item.repository.ts` | SQL queries only — no business logic |
-| **Models** | `models/item.model.ts` | Shared types and Zod validation schemas (DTOs) |
-| **Config** | `config/database.ts` | Database connection pool and schema migrations |
+| **Repositories** | `repositories/item.repository.ts` | Data access via TypeORM — no business logic |
+| **Entities** | `entities/item.entity.ts` | TypeORM entity definition (table schema) |
+| **Models** | `models/item.model.ts` | Zod validation schemas for request DTOs |
+| **Config** | `config/database.ts` | TypeORM DataSource (connection + schema sync) |
 | **Errors** | `errors/AppError.ts` | Typed error classes mapped to HTTP status codes |
 | **Middleware** | `middleware/errorHandler.ts` | Catches and normalises all errors into JSON responses |
 
