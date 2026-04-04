@@ -63,6 +63,60 @@ npm run build
 npm start
 ```
 
+**4. Run tests**
+```bash
+npm test
+
+# With coverage report
+npm run test:coverage
+```
+
+**Test results**
+```
+PASS src/__tests__/errorHandler.test.ts
+  errorHandler
+    ✓ handles ZodError with 400 and validation details (6 ms)
+    ✓ handles AppError with its status code and message (1 ms)
+    ✓ handles unknown errors with 500 (1 ms)
+    ✓ uses statusCode from a custom AppError subclass
+
+PASS src/__tests__/item.model.test.ts
+  CreateItemSchema
+    ✓ accepts valid input with defaults (3 ms)
+    ✓ rejects empty name (7 ms)
+    ✓ rejects invalid status
+  UpdateItemSchema
+    ✓ accepts partial updates
+    ✓ rejects empty object (1 ms)
+    ✓ rejects empty name string
+    ✓ allows null description (1 ms)
+  ListItemsQuerySchema
+    ✓ applies defaults for page and limit
+    ✓ coerces string numbers (2 ms)
+    ✓ rejects limit over 100 (1 ms)
+
+PASS src/__tests__/item.service.test.ts
+  ItemService
+    create
+      ✓ delegates to repository and returns the created item (3 ms)
+    list
+      ✓ returns paginated result with correct metadata (1 ms)
+    getById
+      ✓ returns the item when found (1 ms)
+      ✓ throws NotFoundError when item does not exist (5 ms)
+    update
+      ✓ returns the updated item
+      ✓ throws NotFoundError when item does not exist before update (1 ms)
+    delete
+      ✓ resolves when item is deleted (1 ms)
+      ✓ throws NotFoundError when item does not exist (1 ms)
+
+Test Suites: 3 passed, 3 total
+Tests:       22 passed, 22 total
+Snapshots:   0 total
+Time:        3.286 s
+```
+
 ---
 
 ## Environment variables
@@ -83,8 +137,14 @@ npm start
 ```
 src/problem5/
 ├── src/                          # Application source code
+│   ├── __tests__/                # Unit tests (excluded from production build)
+│   │   ├── errorHandler.test.ts  # Middleware error handling tests
+│   │   ├── item.model.test.ts    # Zod schema validation tests
+│   │   └── item.service.test.ts  # Service layer tests (repository mocked)
 │   ├── config/
 │   │   └── database.ts           # TypeORM DataSource configuration
+│   ├── docs/
+│   │   └── swagger.ts            # OpenAPI 3.0 spec (served at /docs)
 │   ├── entities/
 │   │   └── item.entity.ts        # TypeORM entity (maps to the items table)
 │   ├── errors/
@@ -101,13 +161,15 @@ src/problem5/
 │   │   └── item.controller.ts    # HTTP layer — parse requests, call services, send responses
 │   ├── routes/
 │   │   └── item.routes.ts        # Wires controllers to Express Router
-│   ├── app.ts                    # Express app factory (middleware, routes, 404)
+│   ├── app.ts                    # Express app factory (middleware, routes, /docs, 404)
 │   └── server.ts                 # Entry point — initialise DataSource, start HTTP server
 ├── Dockerfile                    # Multi-stage build: builder → production image
 ├── docker-compose.yml            # Orchestrates app + postgres:16-alpine
 ├── .env.example                  # Environment variable template
-├── package.json
-└── tsconfig.json
+├── jest.config.js                # Jest configuration (ts-jest)
+├── tsconfig.json                 # Production TypeScript config (excludes tests)
+├── tsconfig.test.json            # Test TypeScript config (adds jest types)
+└── package.json
 ```
 
 ### Layer responsibilities
@@ -127,6 +189,14 @@ src/problem5/
 ---
 
 ## API Reference
+
+### Swagger UI
+
+Interactive API documentation is available at **http://localhost:3000/docs** when the server is running.
+
+![Swagger UI](Swagger%20UI.png)
+
+---
 
 ### Health check
 
