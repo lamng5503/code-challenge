@@ -1,7 +1,9 @@
 import express, { Application } from "express";
 import { DataSource } from "typeorm";
+import swaggerUi from "swagger-ui-express";
 import { createItemRouter } from "./routes/item.routes";
 import { errorHandler } from "./middleware/errorHandler";
+import { swaggerSpec } from "./docs/swagger";
 
 export function createApp(db: DataSource): Application {
   const app = express();
@@ -11,6 +13,8 @@ export function createApp(db: DataSource): Application {
   app.get("/health", (_req, res) => {
     res.json({ status: "ok" });
   });
+
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   app.use("/items", createItemRouter(db));
 
