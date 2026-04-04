@@ -78,29 +78,48 @@ npm start
 
 ---
 
-## Architecture
+## Project Structure
 
 ```
-src/
-├── config/
-│   └── database.ts          # pg Pool factory + schema migrations
-├── models/
-│   └── item.model.ts        # Item interface + Zod validation schemas
-├── repositories/
-│   └── item.repository.ts   # All SQL queries via pg (data access layer)
-├── services/
-│   └── item.service.ts      # Business logic (not coupled to HTTP)
-├── controllers/
-│   └── item.controller.ts   # Parse request, call service, send response
-├── routes/
-│   └── item.routes.ts       # Wire controllers to Express routes
-├── middleware/
-│   └── errorHandler.ts      # Centralised error handling (Zod + AppError)
-├── errors/
-│   └── AppError.ts          # Typed error hierarchy (NotFoundError, etc.)
-├── app.ts                   # Express app factory
-└── server.ts                # Entry point — create pool, run migrations, listen
+src/problem5/
+├── src/                          # Application source code
+│   ├── config/
+│   │   └── database.ts           # pg Pool factory + schema migrations
+│   ├── errors/
+│   │   └── AppError.ts           # Typed error hierarchy (AppError, NotFoundError, ValidationError)
+│   ├── middleware/
+│   │   └── errorHandler.ts       # Centralised error handling (Zod + AppError + unknown)
+│   ├── models/
+│   │   └── item.model.ts         # Item interface + Zod schemas for request validation
+│   ├── repositories/
+│   │   └── item.repository.ts    # Data access layer — all SQL via pg Pool
+│   ├── services/
+│   │   └── item.service.ts       # Business logic, orchestrates repositories
+│   ├── controllers/
+│   │   └── item.controller.ts    # HTTP layer — parse requests, call services, send responses
+│   ├── routes/
+│   │   └── item.routes.ts        # Wires controllers to Express Router
+│   ├── app.ts                    # Express app factory (middleware, routes, 404)
+│   └── server.ts                 # Entry point — run migrations, start HTTP server
+├── Dockerfile                    # Multi-stage build: builder → production image
+├── docker-compose.yml            # Orchestrates app + postgres:16-alpine
+├── .env.example                  # Environment variable template
+├── package.json
+└── tsconfig.json
 ```
+
+### Layer responsibilities
+
+| Layer | File(s) | Responsibility |
+|---|---|---|
+| **Routes** | `routes/item.routes.ts` | Map HTTP methods + paths to controller handlers |
+| **Controllers** | `controllers/item.controller.ts` | Parse & validate HTTP input, format HTTP response |
+| **Services** | `services/item.service.ts` | Business rules, pagination logic, error semantics |
+| **Repositories** | `repositories/item.repository.ts` | SQL queries only — no business logic |
+| **Models** | `models/item.model.ts` | Shared types and Zod validation schemas (DTOs) |
+| **Config** | `config/database.ts` | Database connection pool and schema migrations |
+| **Errors** | `errors/AppError.ts` | Typed error classes mapped to HTTP status codes |
+| **Middleware** | `middleware/errorHandler.ts` | Catches and normalises all errors into JSON responses |
 
 ---
 
